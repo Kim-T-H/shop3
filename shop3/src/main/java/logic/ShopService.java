@@ -10,8 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 
+
 import dao.ItemDao;
 import dao.UserDao;
+import dao.boardDao;
 import dao.SaleDao;
 import dao.SaleItemDao;
 
@@ -27,6 +29,9 @@ public class ShopService {
 	
 	@Autowired
 	private SaleDao saleDao;
+	
+	@Autowired
+	private boardDao boardDao;
 	
 	@Autowired
 	private SaleItemDao saleItemDao;
@@ -144,10 +149,73 @@ public class ShopService {
 		return userDao.getlistAll();
 	}
 
-	
-	
-	
-	
+	public List<User> userList(String[] idchks) {
+		
+		return userDao.list(idchks); 
+	}
 
+	public void boardWrite(Board board, HttpServletRequest request) {
+		if(board.getFile1() !=null && !board.getFile1().isEmpty()) {
+			uploadFileCreate(board.getFile1(), request, "board/file/");
+			board.setFileurl(board.getFile1().getOriginalFilename());
+		}
+		int max=boardDao.maxnum();
+		board.setNum(++max);
+		board.setGrp(max);
+		boardDao.insert(board); 
+		
+	}
+
+	public int boardcount(String searchtype,String searchcontent) {
+		return boardDao.count(searchtype,searchcontent);
+	}
+
+	public List<Board> boardlist(Integer pageNum, int limit, String searchtype,String searchcontent) {
+		return boardDao.list(pageNum,limit,searchtype,searchcontent);
+	}
+
+	public Board getBoard(Integer num, boolean able) {
+		if(able) {
+			boardDao.readcntadd(num);
+		}
+		return boardDao.selectOne(num);
+	}
+
+	public void boardReply(Board board) {
+		boardDao.updateGrpstep(board);	//기존 답글의 grpstep 증가.
+		int max=boardDao.maxnum();
+		board.setNum(++max);
+		board.setGrplevel(board.getGrplevel()+1);
+		board.setGrpstep(board.getGrpstep()+1);
+		boardDao.insert(board);
+		
+	}
+
+	public void boardUpdate(Board board, HttpServletRequest request) {
+		
+		//업로드 파일이 존재하는 경우
+		if(board.getFile1() !=null && !board.getFile1().isEmpty()) {
+			uploadFileCreate(board.getFile1(), request, "board/file/");
+			board.setFileurl(board.getFile1().getOriginalFilename());
+		}
+		boardDao.boardupdate(board);
+	}
+
+	public void boardDelete(Board board) {
+		boardDao.delete(board.getNum());
+		
+	}
+
+//	public void boardDelete(Integer num) {
+//		boardDao.boarddelete(num);
+//		
+//	}
+
+//	public Board getdetail(Integer num) {
+//		boardDao.updatereadCnt(num);
+//		return boardDao.detail(num);
+//	}
+
+	
 
 }

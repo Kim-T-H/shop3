@@ -62,4 +62,16 @@ public class UserDao {
 	public List<User> getlistAll() {
 		return template.query("select * from useraccount", mapper);
 	}
+
+	public List<User> list(String[] idchks) {
+		// select * from useraccount where userid in ('test1','test3')
+		String ids="";
+		for(int i=0; i<idchks.length; i++) {
+			ids +="'" +idchks[i]+((i==idchks.length-1)?"'":"',");
+		}
+		
+		String sql=" select * from useraccount where userid in ("
+					+ ids +")";
+		return template.query(sql,mapper);
+	}
 }
